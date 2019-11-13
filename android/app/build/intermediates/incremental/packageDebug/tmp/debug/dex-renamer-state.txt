@@ -1,0 +1,4 @@
+#Wed Nov 13 10:03:12 BRST 2019
+base.0=/home/rodrigo_monteiro/bootcamp/bootcamp-gostack-desafio-06/android/app/build/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
