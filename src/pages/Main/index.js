@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { Keyboard } from 'react-native';
+import { Keyboard, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import PropTypes from 'prop-types';
 
 import api from '../../services/api';
 import {
@@ -21,10 +23,28 @@ export default class Main extends Component {
   state = {
     newUser: '',
     users: [],
+    loading: false,
   };
+
+  async componentDidMount() {
+    const users = await AsyncStorage.getItem('users');
+
+    if (users) {
+      this.setState({ users: JSON.parse(users) });
+    }
+  }
+
+  componentDidUpdate(_, prevState) {
+    const { users } = this.state;
+    if (prevState.users !== users) {
+      AsyncStorage.setItem('users', JSON.stringify(users));
+    }
+  }
 
   handleAddUser = async () => {
     const { users, newUser } = this.state;
+
+    this.setState({ loading: true });
 
     const response = await api.get(`/users/${newUser}`);
 
@@ -38,13 +58,20 @@ export default class Main extends Component {
     this.setState({
       users: [...users, data],
       newUser: '',
+      loading: false,
     });
 
     Keyboard.dismiss();
   };
 
+  handleNavigate = user => {
+    const { navigation } = this.props;
+
+    navigation.navigate('User', { user });
+  };
+
   render() {
-    const { users, newUser } = this.state;
+    const { users, newUser, loading } = this.state;
     return (
       <Container>
         <Form>
@@ -55,8 +82,12 @@ export default class Main extends Component {
             value={newUser}
             onChangeText={text => this.setState({ newUser: text })}
           />
-          <SubmitButton onPress={this.handleAddUser}>
-            <Icon name="add" size={20} color="#FFF" />
+          <SubmitButton loading={loading} onPress={this.handleAddUser}>
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Icon name="add" size={20} color="#FFF" />
+            )}
           </SubmitButton>
         </Form>
 
@@ -69,7 +100,7 @@ export default class Main extends Component {
               <Name>{item.name}</Name>
               <Bio>{item.bio}</Bio>
 
-              <ProfileButton onPress={() => {}}>
+              <ProfileButton onPress={() => this.handleNavigate(item)}>
                 <ProfileButtonText>Ver perfil</ProfileButtonText>
               </ProfileButton>
             </User>
@@ -82,4 +113,10 @@ export default class Main extends Component {
 
 Main.navigationOptions = {
   title: 'Usuários',
+};
+
+Main.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func,
+  }).isRequired,
 };
