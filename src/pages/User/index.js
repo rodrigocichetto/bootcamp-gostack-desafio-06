@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { View } from 'react-native';
 import PropTypes from 'prop-types';
 
 import api from '../../services/api';
@@ -15,11 +14,15 @@ import {
   Info,
   Title,
   Author,
+  Loader,
 } from './styles';
 
 export default class User extends Component {
   state = {
     stars: [],
+    loading: true,
+    page: 1,
+    refreshing: false,
   };
 
   static navigationOptions = ({ navigation }) => ({
@@ -27,18 +30,45 @@ export default class User extends Component {
   });
 
   async componentDidMount() {
+    this.loadMore();
+  }
+
+  loadMore = async () => {
     const { navigation } = this.props;
+    const { loading, refreshing, page, stars } = this.state;
+
+    if (!loading && !refreshing) this.setState({ loading: true });
 
     const user = navigation.getParam('user');
 
-    const response = await api.get(`/users/${user.login}/starred`);
+    const response = await api.get(`/users/${user.login}/starred`, {
+      params: {
+        per_page: 10,
+        page,
+      },
+    });
 
-    this.setState({ stars: response.data });
-  }
+    this.setState({
+      stars: page === 1 ? response.data : [...stars, ...response.data],
+      page: page + 1,
+      loading: false,
+    });
+  };
+
+  refreshList = async () => {
+    await this.setState({ page: 1 });
+    this.loadMore();
+  };
+
+  handleViewStarred = repository => {
+    const { navigation } = this.props;
+
+    navigation.navigate('Repository', { repository });
+  };
 
   render() {
     const { navigation } = this.props;
-    const { stars } = this.state;
+    const { stars, loading, refreshing } = this.state;
 
     const user = navigation.getParam('user');
 
@@ -51,10 +81,14 @@ export default class User extends Component {
         </Header>
 
         <Stars
+          onRefresh={this.refreshList}
+          refreshing={refreshing}
+          onEndReachedThreshold={0.2}
+          onEndReached={this.loadMore}
           data={stars}
           keyExtractor={star => String(star.id)}
           renderItem={({ item }) => (
-            <Starred>
+            <Starred onPress={() => this.handleViewStarred(item)}>
               <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
               <Info>
                 <Title>{item.name}</Title>
@@ -63,6 +97,7 @@ export default class User extends Component {
             </Starred>
           )}
         />
+        {loading && <Loader />}
       </Container>
     );
   }
@@ -70,6 +105,7 @@ export default class User extends Component {
 
 User.propTypes = {
   navigation: PropTypes.shape({
+    navigate: PropTypes.func,
     getParam: PropTypes.func,
   }).isRequired,
 };
