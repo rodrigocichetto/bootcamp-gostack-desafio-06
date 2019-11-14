@@ -24,6 +24,7 @@ export default class Main extends Component {
     newUser: '',
     users: [],
     loading: false,
+    error: false,
   };
 
   async componentDidMount() {
@@ -41,27 +42,36 @@ export default class Main extends Component {
     }
   }
 
+  // eslint-disable-next-line consistent-return
   handleAddUser = async () => {
     const { users, newUser } = this.state;
 
+    if (users.find(u => u.login.toLowerCase() === newUser.toLowerCase()))
+      return this.setState({ error: true });
+
     this.setState({ loading: true });
 
-    const response = await api.get(`/users/${newUser}`);
+    try {
+      const response = await api.get(`/users/${newUser}`);
 
-    const data = {
-      name: response.data.name,
-      login: response.data.login,
-      bio: response.data.bio,
-      avatar: response.data.avatar_url,
-    };
+      const data = {
+        name: response.data.name,
+        login: response.data.login,
+        bio: response.data.bio,
+        avatar: response.data.avatar_url,
+      };
 
-    this.setState({
-      users: [...users, data],
-      newUser: '',
-      loading: false,
-    });
+      this.setState({
+        users: [...users, data],
+        newUser: '',
+      });
 
-    Keyboard.dismiss();
+      Keyboard.dismiss();
+    } catch (err) {
+      this.setState({ error: true });
+    } finally {
+      this.setState({ loading: false });
+    }
   };
 
   handleNavigate = user => {
@@ -71,7 +81,7 @@ export default class Main extends Component {
   };
 
   render() {
-    const { users, newUser, loading } = this.state;
+    const { users, newUser, loading, error } = this.state;
     return (
       <Container>
         <Form>
@@ -80,7 +90,10 @@ export default class Main extends Component {
             autoCapitalize="none"
             placeholder="Adicionar usuário"
             value={newUser}
-            onChangeText={text => this.setState({ newUser: text })}
+            error={error}
+            onChangeText={text =>
+              this.setState({ newUser: text, error: false })
+            }
           />
           <SubmitButton loading={loading} onPress={this.handleAddUser}>
             {loading ? (

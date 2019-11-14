@@ -1,4 +1,4 @@
-import styled from 'styled-components/native';
+import styled, { css } from 'styled-components/native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export const Container = styled.View`
@@ -80,5 +80,9 @@ export const Author = styled.Text`
 export const Loader = styled.ActivityIndicator.attrs({
   color: '#999',
 })`
-  margin-top: 30px;
+  ${props =>
+    props.top &&
+    css`
+      margin-top: ${props.top}px;
+    `}
 `;

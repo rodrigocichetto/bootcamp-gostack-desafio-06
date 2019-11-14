@@ -18,16 +18,16 @@ import {
 } from './styles';
 
 export default class User extends Component {
+  static navigationOptions = ({ navigation }) => ({
+    title: navigation.getParam('user').name,
+  });
+
   state = {
     stars: [],
     loading: true,
     page: 1,
     refreshing: false,
   };
-
-  static navigationOptions = ({ navigation }) => ({
-    title: navigation.getParam('user').name,
-  });
 
   async componentDidMount() {
     this.loadMore();
@@ -79,7 +79,7 @@ export default class User extends Component {
           <Name>{user.name}</Name>
           <Bio>{user.bio}</Bio>
         </Header>
-
+        {!stars.length && <Loader top={10} />}
         <Stars
           onRefresh={this.refreshList}
           refreshing={refreshing}

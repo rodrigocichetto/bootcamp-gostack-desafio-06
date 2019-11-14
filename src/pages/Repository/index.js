@@ -1,11 +1,10 @@
 import React from 'react';
-import { WebView } from 'react-native';
+import { WebView } from 'react-native-webview';
 import PropTypes from 'prop-types';
 
 // import { Container } from './styles';
 
 export default function Repository({ navigation }) {
-  console.tron.log(navigation.getParam('repository'));
   const repository = navigation.getParam('repository');
   return <WebView source={{ uri: repository.html_url }} style={{ flex: 1 }} />;
 }
