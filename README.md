@@ -13,6 +13,7 @@
 
   <a href="https://cichetto.com.br">
     <img alt="Made by Cichetto" src="https://img.shields.io/badge/made%20by-Cichetto-%232193b0">
+  </a>
 
   <img alt="License" src="https://img.shields.io/badge/license-MIT-%2304D361">
 </p>
